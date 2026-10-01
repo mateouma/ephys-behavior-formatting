@@ -1,0 +1,65 @@
+# Conda environment for ephys-behavior-formatting.
+#
+#   conda env create -f environment.yml
+#   conda activate ephys-fmt
+#
+# Python is capped at 3.11 by two hard constraints:
+#   - npyx 4.1.x declares python <3.12
+#   - MATLAB Engine for Python (R2024a, used by the Plexon readers) supports 3.9-3.11
+name: ephys-fmt
+channels:
+  - conda-forge
+  - nodefaults
+dependencies:
+  - python=3.11
+  - pip
+
+  # core scientific stack (numpy<2: npyx 4.1.x and the old pipeline were built against 1.x)
+  - numpy>=1.24,<2
+  - scipy>=1.10
+  - pandas>=2.0,<3
+  - h5py
+  - numba
+  - numexpr
+  - xarray
+  - statsmodels
+  - scikit-learn
+  - imbalanced-learn
+  - umap-learn
+  - networkx
+  - psutil
+  - joblib>=1.3
+  - tqdm
+
+  # plotting
+  - matplotlib
+  - seaborn
+  - cmcrameri
+
+  # file I/O
+  - tk                      # tkinter file dialogs used in Experiment.py
+
+  # notebooks
+  - jupyterlab
+  - ipykernel
+  - ipython<9                # npyx 4.1.x imports IPython.core.display.display (removed in 9.0)
+
+  # dev
+  - pytest
+  - ruff
+
+  - pip:
+      # repeat the numpy/pandas pins so pip doesn't upgrade past conda's versions
+      - numpy>=1.24,<2
+      - pandas>=2.0,<3
+      - npyx>=4.1.3,<4.2
+      - neo                  # Plexon/SpikeGLX readers
+      - spikeinterface>=0.100
+      - probeinterface
+      - mat73
+      - dpca
+      - -e .
+
+# MATLAB Engine for Python (needed by the Plexon readers) is installed separately
+# because its build must locate the local MATLAB install, which varies by machine:
+#   bash scripts/install_matlab_engine.sh [matlabroot]

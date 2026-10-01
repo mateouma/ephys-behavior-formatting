@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Environments
+.venv/
+venv/
+.env
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+
+# Claude Code local settings
+.claude/settings.local.json
+
+# Raw and processed data (never commit recordings)
+data/
+*.bin
+*.plx
+*.pl2
+*.nidq.meta
+*.ap.meta
+*.lf.meta
+*.npy
+*.h5
+*.hdf5
+*.nwb
