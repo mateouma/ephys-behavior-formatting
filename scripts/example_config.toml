@@ -1,0 +1,53 @@
+# Example config for scripts/generate_h5_dataset.py.
+# Relative paths are resolved against this file's folder.
+
+output_dir = "/home/mateoumaguing/Documents/MiscData/CFD_data_h5"
+
+# Settings shared by all sessions; any session can override them.
+[defaults]
+roi = "DLPFC"
+task_type = "CHKDLAY"
+bin_size = 0.001   # s
+n_jobs = 8         # parallel waveform reads (Neuropixels)
+
+# One output file per alignment per session.
+[[alignments]]
+event_name = "CheckerboardDrawnTime"
+pre_time = 0.400   # s before the event
+post_time = 2.000  # s after the event
+
+[[alignments]]
+event_name = "TargetsDrawnTime"
+pre_time = 1.800
+post_time = 1.000
+
+# Unit inclusion criteria (UnitCriteria fields) for all sessions. Omit a setting to
+# not filter on it. A session's own `criteria` table is merged on top of this one.
+[criteria]
+quality_labels = ["good", "mua"]
+min_firing_rate = 1.0             # Hz
+min_presence_ratio = 0.9
+# max_isi_violations_ratio = 1.0  # set per session below (not meaningful for Plexon)
+# min_snr = 3.0
+# max_amplitude_cutoff = 0.1
+# include_ids = []
+# exclude_ids = []
+
+[[sessions]]
+probe = "neuropixels"
+monkey_id = "B"
+session_date = "20250325"
+kilosort_dir = "/media/mateoumaguing/Extreme SSD/example_npix_session/BILBO_CHKDLAY_DLPFC_03252025_g0/BILBO_CHKDLAY_DLPFC_03252025_g0_imec0/kilosort4"
+events_path = "/media/mateoumaguing/Extreme SSD/CFD_DLPFC/BilboEvents/20250325/CFDeventStruct.mat"
+# raw_dir = "..."                   # default: kilosort_dir or its parent
+# labels_file = "cluster_group.tsv" # default: cluster_KSLabel.tsv
+criteria = { max_isi_violations_ratio = 1.0 }
+
+[[sessions]]
+probe = "plexon"
+monkey_id = "T"
+session_date = "20220309"
+all_trials_path = "/media/mateoumaguing/Extreme SSD/CFD_plexon_data/TiberiusCHKDLAY20220309.mat"
+events_path = "/media/mateoumaguing/Extreme SSD/CFD_DLPFC/TiberiusEvents/20220309/CFDeventStruct.mat"  # for RTs
+# valid_savetags = [1, 2]
+# include_unsorted = false
