@@ -10,7 +10,10 @@ Run it with ``python scripts/generate_h5_dataset.py config.toml`` (see
 - ``[criteria]``: :class:`~ephys_behavior_formatting.units.UnitCriteria` fields.
   A session's own ``criteria`` table is merged on top.
 - ``[[sessions]]``: one entry per session, with ``probe = "neuropixels"`` or
-  ``"plexon"`` and the paths that recording system needs.
+  ``"plexon"`` and the paths that recording system needs. Neuropixels sessions
+  can set ``sync_clocks = true`` to align event times to the probe clock with
+  the shared sync pulse (see
+  :meth:`~ephys_behavior_formatting.neuropixels.NeuropixelsExperiment.sync_clocks`).
 
 Relative paths are resolved against the config file's folder.
 """
@@ -42,10 +45,16 @@ COMMON_KEYS = {
 }  # fmt: skip
 #: Settings for each recording system: (required, optional).
 PROBE_KEYS = {
-    "neuropixels": ({"kilosort_dir", "events_path"}, {"raw_dir", "labels_file"}),
+    "neuropixels": (
+        {"kilosort_dir", "events_path"},
+        {"raw_dir", "labels_file", "sync_clocks", "imec_sync_bit", "nidaq_sync_channel",
+         "nidaq_bin_path"},
+    ),
     "plexon": ({"all_trials_path"}, {"valid_savetags", "include_unsorted"}),
-}
-PATH_KEYS = {"kilosort_dir", "events_path", "raw_dir", "all_trials_path"}
+}  # fmt: skip
+#: Options passed to ``NeuropixelsExperiment.sync_clocks`` when ``sync_clocks = true``.
+SYNC_KEYS = {"imec_sync_bit", "nidaq_sync_channel", "nidaq_bin_path"}
+PATH_KEYS = {"kilosort_dir", "events_path", "raw_dir", "all_trials_path", "nidaq_bin_path"}
 DEFAULTS = {"roi": "DLPFC", "task_type": "CHKDLAY", "bin_size": 0.001, "n_jobs": 1}
 
 
@@ -119,6 +128,12 @@ def _validate_session(session: dict, entry: dict, where: str) -> None:
         if ALIGNMENT_KEYS - alignment.keys():
             raise ConfigError(f"{where}: each alignment needs {sorted(ALIGNMENT_KEYS)}")
     _check_keys(session["criteria"], CRITERIA_KEYS, f"{where} criteria")
+    if probe == "neuropixels":
+        if not isinstance(session.get("sync_clocks", False), bool):
+            raise ConfigError(f"{where}: sync_clocks must be true or false")
+        unused = SYNC_KEYS & session.keys()
+        if unused and not session.get("sync_clocks"):
+            raise ConfigError(f"{where}: {sorted(unused)} only apply with sync_clocks = true")
 
 
 def _resolve(value: str, base: Path) -> Path:
@@ -169,6 +184,12 @@ def run_session(session: dict, output_dir: Path, overwrite: bool = False) -> lis
         return []
 
     experiment = build_experiment(session)
+    if session.get("sync_clocks"):
+        sync = experiment.sync_clocks(**{k: session[k] for k in SYNC_KEYS if k in session})
+        print(
+            f"Synced clocks on {sync['n_pulses']} pulses "
+            f"(slope {sync['slope']:.8f}, max residual {sync['max_residual_samples']:.1f} samples)."
+        )
     experiment.load_units(n_jobs=session["n_jobs"])
     criteria = UnitCriteria(**session["criteria"]) if session["criteria"] else None
     if criteria is not None:

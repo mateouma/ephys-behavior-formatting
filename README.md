@@ -43,6 +43,7 @@ python scripts/generate_h5_dataset.py config.toml --only 20250325 --overwrite
 ```
 
 The config sets the output folder, shared `[defaults]`, the `[[alignments]]` to write (one file each), the unit `[criteria]`, and one `[[sessions]]` entry per session. Sessions can override any default and add their own criteria, which are merged on top of the shared ones.
+Neuropixels sessions whose NI-DAQ and probe clocks aren't aligned can set `sync_clocks = true` (with optional `imec_sync_bit`, `nidaq_sync_channel` and `nidaq_bin_path`) to map event times onto the probe clock using the shared sync pulse.
 - **Validation:** the whole config is checked before anything runs, so a typo or a setting for the wrong recording system fails immediately.
 - **Existing files:** files that already exist are skipped unless you pass `--overwrite`.
 - **Failures:** a session that fails is reported and the rest still run; the exit code is non-zero if any session failed.

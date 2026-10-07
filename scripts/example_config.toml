@@ -41,6 +41,10 @@ kilosort_dir = "/media/mateoumaguing/Extreme SSD/example_npix_session/BILBO_CHKD
 events_path = "/media/mateoumaguing/Extreme SSD/CFD_DLPFC/BilboEvents/20250325/CFDeventStruct.mat"
 # raw_dir = "..."                   # default: kilosort_dir or its parent
 # labels_file = "cluster_group.tsv" # default: cluster_KSLabel.tsv
+# sync_clocks = true                # map event times onto the probe clock via the sync pulse
+# imec_sync_bit = 6                 # probe sync-word bit with the pulse (default 6)
+# nidaq_sync_channel = 4            # saved NI-DAQ analog channel with the pulse (default 4)
+# nidaq_bin_path = "..."            # default: the *.nidq.bin in raw_dir's parent
 criteria = { max_isi_violations_ratio = 1.0 }
 
 [[sessions]]

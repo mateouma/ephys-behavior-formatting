@@ -96,3 +96,53 @@ def test_invalid_configs_are_rejected(tmp_path, session_extra, top_extra, messag
     with pytest.raises(ConfigError, match=message):
         load_config(config)
     assert main([str(config)]) == 2
+
+
+def _write_neuropixels_config(tmp_path, session_extra=""):
+    config = tmp_path / "config.toml"
+    config.write_text(f"""
+output_dir = "out"
+
+[[alignments]]
+event_name = "CheckerboardDrawnTime"
+pre_time = 0.5
+post_time = 1.0
+
+[[sessions]]
+probe = "neuropixels"
+monkey_id = "B"
+session_date = "20250325"
+kilosort_dir = "SESS/SESS_imec0/kilosort"
+events_path = "CFDeventStruct.mat"
+{session_extra}
+""")
+    return config
+
+
+def test_sync_clocks_options(tmp_path):
+    config = load_config(
+        _write_neuropixels_config(
+            tmp_path, 'sync_clocks = true\nnidaq_sync_channel = 2\nnidaq_bin_path = "s.nidq.bin"'
+        )
+    )
+    session = config["sessions"][0]
+    assert session["sync_clocks"] is True
+    assert session["nidaq_sync_channel"] == 2
+    assert session["nidaq_bin_path"] == tmp_path / "s.nidq.bin"
+
+
+@pytest.mark.parametrize(
+    ("session_extra", "message"),
+    [
+        ("nidaq_sync_channel = 2", "only apply with sync_clocks"),
+        ('sync_clocks = "yes"', "true or false"),
+    ],
+)
+def test_invalid_sync_clocks_options_are_rejected(tmp_path, session_extra, message):
+    with pytest.raises(ConfigError, match=message):
+        load_config(_write_neuropixels_config(tmp_path, session_extra))
+
+
+def test_sync_clocks_rejected_on_plexon_session(tmp_path):
+    with pytest.raises(ConfigError, match="unknown setting"):
+        load_config(_write_config(tmp_path, session_extra="sync_clocks = true"))
